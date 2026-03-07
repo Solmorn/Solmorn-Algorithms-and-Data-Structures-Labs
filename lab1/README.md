@@ -29,8 +29,8 @@ Graphs \(time(n)\) on a single figure, where \(n\) is the number of push operati
 ## How to start
 
 ```
-chmod +x run.sh
-./run.sh
+chmod +x start.sh
+./start.sh
 ```
 
 
