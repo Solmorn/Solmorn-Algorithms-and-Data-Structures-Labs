@@ -26,6 +26,13 @@ Figure out how to generate random numbers from the set {1, 2}. Then first grow t
 
 Graphs \(time(n)\) on a single figure, where \(n\) is the number of push operations for the array-based stack and the linked-list-based stack. Iterate \(n\) from 1000 to \(10^6\) with a step of 1000.
 
+## How to start
+
+```
+chmod +x run.sh
+./run.sh
+```
+
 
 ## Results
 
