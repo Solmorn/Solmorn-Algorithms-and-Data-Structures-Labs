@@ -53,4 +53,8 @@ int main() {
 
     printf("Test 3 arr  stack time: %lf\n", test_arr_stack_time/TESTS_IN_SERIE);
     printf("Test 3 list stack time: %lf\n\n", test_list_stack_time/TESTS_IN_SERIE);
+
+
+    TestFour_both_stack("graph_data.txt");
+    
 }

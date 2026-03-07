@@ -13,6 +13,6 @@ double TestTwo_list_stack(int* data);
 double TestThree_arr_stack(int* data_values, int* data_instructions);
 double TestThree_list_stack(int* data_values, int* data_instructions);
 
-
+int TestFour_both_stack(const char *filename);
 
 #endif
