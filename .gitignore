@@ -1,1 +1,7 @@
 .vscode
+.venv/
+graph_data.txt
+testing
+bin/
+tests/
+results/
