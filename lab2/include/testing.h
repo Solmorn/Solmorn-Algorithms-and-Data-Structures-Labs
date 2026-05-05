@@ -11,19 +11,38 @@
 typedef void (*sort_fn_t)(int* arr, size_t n);
 
 static void read_array_from_file(const char* path, int** arr, size_t* n) {
-    FILE* file = fopen(path, "r");
-    assert(file != NULL);
+    assert(path != NULL);
+    assert(arr != NULL);
+    assert(n != NULL);
 
-    assert(fscanf(file, "%zu", n) == 1);
+    FILE* file = fopen(path, "r");
+
+    if (file == NULL) {
+        abort();
+    }
+
+    if (fscanf(file, "%zu", n) != 1) {
+        fclose(file);
+        abort();
+    }
 
     *arr = NULL;
+
     if (*n > 0) {
         *arr = (int*)malloc((*n) * sizeof(int));
-        assert(*arr != NULL);
+
+        if (*arr == NULL) {
+            fclose(file);
+            abort();
+        }
     }
 
     for (size_t i = 0; i < *n; ++i) {
-        assert(fscanf(file, "%d", &(*arr)[i]) == 1);
+        if (fscanf(file, "%d", &(*arr)[i]) != 1) {
+            free(*arr);
+            fclose(file);
+            abort();
+        }
     }
 
     fclose(file);
@@ -55,10 +74,17 @@ static double* test_sorting(
 
     size_t count = (size_t)((to - from) / step + 1);
     double* avg_times = (double*)calloc(count, sizeof(double));
-    assert(avg_times != NULL);
+
+    if (avg_times == NULL) {
+        abort();
+    }
 
     FILE* results = fopen(results_path, "w");
-    assert(results != NULL);
+
+    if (results == NULL) {
+        free(avg_times);
+        abort();
+    }
 
     fprintf(results, "size,avg_time_sec\n");
 
@@ -76,9 +102,11 @@ static double* test_sorting(
             snprintf(out_path, sizeof(out_path), "%s/%d_%zu.out", tests_dir, size, k);
 
             FILE* probe = fopen(in_path, "r");
+
             if (probe == NULL) {
                 break;
             }
+
             fclose(probe);
 
             int* input_arr = NULL;
@@ -95,7 +123,15 @@ static double* test_sorting(
 
             if (input_n > 0) {
                 work_arr = (int*)malloc(input_n * sizeof(int));
-                assert(work_arr != NULL);
+
+                if (work_arr == NULL) {
+                    free(input_arr);
+                    free(expected_arr);
+                    fclose(results);
+                    free(avg_times);
+                    abort();
+                }
+
                 memcpy(work_arr, input_arr, input_n * sizeof(int));
             }
 
@@ -119,7 +155,9 @@ static double* test_sorting(
     }
 
     fclose(results);
+
     *result_count = count;
+    
     return avg_times;
 }
 
