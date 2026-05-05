@@ -4,6 +4,8 @@
 
 #include "../include/point5_sorts.h"
 
+static const ptrdiff_t MEDIAN_GROUP_SIZE = 5;
+
 typedef int (*pivot_selector_t)(int* a, ptrdiff_t l, ptrdiff_t r);
 
 typedef struct {
@@ -125,14 +127,14 @@ static int select_kth_median_of_medians(int* a, ptrdiff_t l, ptrdiff_t r, ptrdif
     while (1) {
         ptrdiff_t n = r - l + 1;
 
-        if (n <= 5) {
+        if (n <= MEDIAN_GROUP_SIZE) {
             insertion_sort_range(a, l, r);
             return a[k];
         }
 
         ptrdiff_t medians_count = 0;
 
-        for (ptrdiff_t group_start = l; group_start <= r; group_start += 5) {
+        for (ptrdiff_t group_start = l; group_start <= r; group_start += MEDIAN_GROUP_SIZE) {
             ptrdiff_t group_end = min_ptrdiff(group_start + 4, r);
             insertion_sort_range(a, group_start, group_end);
 
