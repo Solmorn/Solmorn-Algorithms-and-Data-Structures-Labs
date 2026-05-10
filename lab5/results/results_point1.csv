@@ -1,0 +1,3 @@
+type,n,insert_time,erase_time
+random,100000,0.025518179,0.011230612
+sorted,10000,0.177439404,0.000049973
