@@ -1,55 +1,38 @@
-#include <limits.h>
 #include <stdlib.h>
 
 #include "../include/point3_dijkstra.h"
 #include "../include/point1_heaps.h"
 
-static const long long INF = LLONG_MAX / 4;
+static int* dijkstra_binary_positions_ctor(int n) {
+    return (int*)calloc((size_t)n, sizeof(int));
+}
 
-void dijkstra_binary(const Graph* graph, int source, long long* dist) {
-    int* used = (int*)calloc((size_t)graph->n, sizeof(int));
-    int* positions = (int*)calloc((size_t)graph->n, sizeof(int));
-
-    for (int i = 0; i < graph->n; ++i) {
-        dist[i] = INF;
+static void dijkstra_binary_init_positions(int* positions, int n) {
+    for (int i = 0; i < n; i++) {
         positions[i] = -1;
     }
-
-    Heap* heap = heap_ctor((size_t)graph->n + 1, positions);
-
-    dist[source] = 0;
-    heap_insert(heap, 0, source);
-
-    while (!heap_empty(heap)) {
-        HeapElem min_elem = heap_extract_min_elem(heap);
-
-        int v = min_elem.request_index;
-        long long cur_dist = min_elem.value;
-
-        if (used[v]) continue;
-        used[v] = 1;
-
-        if (cur_dist != dist[v]) continue;
-
-        for (int edge_id = graph->head[v]; edge_id != -1; edge_id = graph->edges[edge_id].next) {
-            int to = graph->edges[edge_id].to;
-            int w = graph->edges[edge_id].weight;
-
-            if (used[to]) continue;
-
-            if (dist[v] + w < dist[to]) {
-                dist[to] = dist[v] + w;
-
-                if (positions[to] == -1) {
-                    heap_insert(heap, dist[to], to);
-                } else {
-                    heap_decrease_key_to(heap, to, dist[to]);
-                }
-            }
-        }
-    }
-
-    heap_dtor(heap);
-    free(positions);
-    free(used);
 }
+
+static Heap* dijkstra_binary_heap_ctor(int n, int* positions) {
+    return heap_ctor((size_t)n + 1, positions);
+}
+
+#define DIJKSTRA_FUNC dijkstra_binary
+#define DIJKSTRA_POS_TYPE int*
+#define DIJKSTRA_POSITIONS_CTOR dijkstra_binary_positions_ctor
+#define DIJKSTRA_INIT_POSITIONS dijkstra_binary_init_positions
+#define DIJKSTRA_POSITIONS_DTOR free
+#define DIJKSTRA_HEAP_TYPE Heap
+#define DIJKSTRA_HEAP_CTOR dijkstra_binary_heap_ctor
+#define DIJKSTRA_HEAP_DTOR heap_dtor
+#define DIJKSTRA_HEAP_EMPTY heap_empty
+#define DIJKSTRA_HEAP_INSERT heap_insert
+#define DIJKSTRA_HEAP_DECREASE_KEY_TO heap_decrease_key_to
+#define DIJKSTRA_HEAP_EXTRACT_MIN heap_extract_min_elem
+#define DIJKSTRA_MIN_TYPE HeapElem
+#define DIJKSTRA_MIN_VERTEX(min_node) ((min_node).request_index)
+#define DIJKSTRA_MIN_DIST(min_node) ((min_node).value)
+#define DIJKSTRA_MIN_DTOR(min_node) ((void)(min_node))
+#define DIJKSTRA_NEED_INSERT(positions, vertex) ((positions)[vertex] == -1)
+
+#include "../include/point3_dijkstra_impl.h"

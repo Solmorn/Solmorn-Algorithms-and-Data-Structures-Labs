@@ -8,7 +8,6 @@ typedef struct HeapElem {
     long long value;
     int request_index;
     int degree;
-
     struct HeapElem* parent;
     struct HeapElem* child;
     struct HeapElem* sibling;
@@ -26,15 +25,8 @@ static int less(HeapElem* a, HeapElem* b) {
 
 static HeapElem* heap_elem_ctor(long long value, int request_index) {
     HeapElem* elem = (HeapElem*)calloc(1, sizeof(HeapElem));
-
     elem->value = value;
     elem->request_index = request_index;
-    elem->degree = 0;
-
-    elem->parent = NULL;
-    elem->child = NULL;
-    elem->sibling = NULL;
-
     return elem;
 }
 
@@ -54,7 +46,6 @@ static Heap* heap_ctor_with_positions(HeapElem** positions) {
 
 static void heap_elem_dtor(HeapElem* elem) {
     if (elem == NULL) return;
-
     heap_elem_dtor(elem->child);
     heap_elem_dtor(elem->sibling);
     free(elem);
@@ -62,7 +53,6 @@ static void heap_elem_dtor(HeapElem* elem) {
 
 static void heap_dtor(Heap* heap) {
     if (heap == NULL) return;
-
     heap_elem_dtor(heap->head);
     free(heap);
 }
@@ -73,7 +63,6 @@ static void swap_payload(HeapElem* a, HeapElem* b, HeapElem** positions) {
 
     a->value = b->value;
     a->request_index = b->request_index;
-
     b->value = tmp_value;
     b->request_index = tmp_index;
 
@@ -126,28 +115,20 @@ static HeapElem* merge_root_lists(HeapElem* a, HeapElem* b) {
             tail->sibling = b;
             b = b->sibling;
         }
-
         tail = tail->sibling;
     }
 
-    if (a != NULL) {
-        tail->sibling = a;
-    } else {
-        tail->sibling = b;
-    }
-
+    tail->sibling = (a != NULL) ? a : b;
     return head;
 }
 
 static void heap_merge(Heap* from, Heap* to) {
     assert(from);
     assert(to);
-
     if (from == to || from->head == NULL) return;
 
     to->head = merge_root_lists(to->head, from->head);
     from->head = NULL;
-
     if (to->head == NULL) return;
 
     HeapElem* prev = NULL;
@@ -155,8 +136,7 @@ static void heap_merge(Heap* from, Heap* to) {
     HeapElem* next = cur->sibling;
 
     while (next != NULL) {
-        if (cur->degree != next->degree ||
-            (next->sibling != NULL && next->sibling->degree == cur->degree)) {
+        if (cur->degree != next->degree || (next->sibling != NULL && next->sibling->degree == cur->degree)) {
             prev = cur;
             cur = next;
         } else if (less(cur, next)) {
@@ -168,18 +148,15 @@ static void heap_merge(Heap* from, Heap* to) {
             } else {
                 prev->sibling = next;
             }
-
             link_trees(cur, next);
             cur = next;
         }
-
         next = cur->sibling;
     }
 }
 
 static HeapElem* heap_insert_node(Heap* heap, long long value, int request_index) {
     assert(heap);
-
     HeapElem* elem = heap_elem_ctor(value, request_index);
 
     if (heap->positions != NULL) {
@@ -188,8 +165,6 @@ static HeapElem* heap_insert_node(Heap* heap, long long value, int request_index
 
     Heap temp = {0};
     temp.head = elem;
-    temp.positions = NULL;
-
     heap_merge(&temp, heap);
     return elem;
 }
@@ -209,7 +184,6 @@ static HeapElem* heap_get_min_node(Heap* heap, HeapElem** prev_min) {
 
     HeapElem* cur = heap->head;
     HeapElem* prev = NULL;
-
     HeapElem* min_node = cur;
     HeapElem* min_prev = NULL;
 
@@ -218,7 +192,6 @@ static HeapElem* heap_get_min_node(Heap* heap, HeapElem** prev_min) {
             min_node = cur;
             min_prev = prev;
         }
-
         prev = cur;
         cur = cur->sibling;
     }
@@ -273,11 +246,8 @@ static HeapElem* heap_extract_min_node(Heap* heap) {
     }
 
     HeapElem* reversed = reverse_children(min_node->child);
-
     Heap temp = {0};
     temp.head = reversed;
-    temp.positions = NULL;
-
     heap_merge(&temp, heap);
 
     min_node->parent = NULL;
@@ -294,33 +264,21 @@ static HeapElem* heap_extract_min_node(Heap* heap) {
 
 static int heap_check_subtree(HeapElem* node, HeapElem* parent) {
     while (node != NULL) {
-        if (node->parent != parent) {
-            return 0;
-        }
-
-        if (parent != NULL && less(node, parent)) {
-            return 0;
-        }
+        if (node->parent != parent) return 0;
+        if (parent != NULL && less(node, parent)) return 0;
 
         int child_count = 0;
         HeapElem* child = node->child;
-
         while (child != NULL) {
             child_count++;
             child = child->sibling;
         }
 
-        if (child_count != node->degree) {
-            return 0;
-        }
-
-        if (!heap_check_subtree(node->child, node)) {
-            return 0;
-        }
+        if (child_count != node->degree) return 0;
+        if (!heap_check_subtree(node->child, node)) return 0;
 
         node = node->sibling;
     }
-
     return 1;
 }
 
@@ -331,17 +289,9 @@ static int heap_is_valid(Heap* heap) {
     HeapElem* cur = heap->head;
 
     while (cur != NULL) {
-        if (cur->parent != NULL) {
-            return 0;
-        }
-
-        if (cur->degree <= prev_degree) {
-            return 0;
-        }
-
-        if (!heap_check_subtree(cur->child, cur)) {
-            return 0;
-        }
+        if (cur->parent != NULL) return 0;
+        if (cur->degree <= prev_degree) return 0;
+        if (!heap_check_subtree(cur->child, cur)) return 0;
 
         prev_degree = cur->degree;
         cur = cur->sibling;

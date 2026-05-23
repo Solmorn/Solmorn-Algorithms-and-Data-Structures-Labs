@@ -12,7 +12,6 @@ typedef struct FibNode {
     int vertex;
     int degree;
     int mark;
-
     struct FibNode* parent;
     struct FibNode* child;
     struct FibNode* left;
@@ -40,24 +39,16 @@ static FibHeap* fib_heap_ctor(FibNode** positions) {
 
 static FibNode* fib_node_ctor(long long key, int vertex) {
     FibNode* node = (FibNode*)calloc(1, sizeof(FibNode));
-
     node->key = key;
     node->vertex = vertex;
-    node->degree = 0;
-    node->mark = 0;
-
-    node->parent = NULL;
-    node->child = NULL;
     node->left = node;
     node->right = node;
-
     return node;
 }
 
 static void fib_merge_cycles(FibNode* a, FibNode* b) {
     FibNode* a_right = a->right;
     FibNode* b_left = b->left;
-
     a->right = b;
     b->left = a;
     a_right->left = b_left;
@@ -67,7 +58,6 @@ static void fib_merge_cycles(FibNode* a, FibNode* b) {
 static void fib_remove_from_list(FibNode* node) {
     node->left->right = node->right;
     node->right->left = node->left;
-
     node->left = node;
     node->right = node;
 }
@@ -82,15 +72,12 @@ static void fib_add_root(FibHeap* heap, FibNode* node) {
         heap->min = node;
     } else {
         fib_merge_cycles(heap->min, node);
-        if (fib_less(node, heap->min)) {
-            heap->min = node;
-        }
+        if (fib_less(node, heap->min)) heap->min = node;
     }
 }
 
 static void fib_heap_insert(FibHeap* heap, long long key, int vertex) {
     assert(heap);
-
     FibNode* node = fib_node_ctor(key, vertex);
 
     if (heap->positions != NULL) {
@@ -108,7 +95,6 @@ static int fib_heap_empty(FibHeap* heap) {
 
 static void fib_link(FibNode* child, FibNode* parent) {
     fib_remove_from_list(child);
-
     child->parent = parent;
     child->mark = 0;
 
@@ -144,7 +130,6 @@ static void fib_consolidate(FibHeap* heap) {
         FibNode* x = roots[i];
         x->left = x;
         x->right = x;
-
         int degree = x->degree;
 
         while (by_degree[degree] != NULL) {
@@ -159,7 +144,6 @@ static void fib_consolidate(FibHeap* heap) {
             by_degree[degree] = NULL;
             fib_link(y, x);
             degree++;
-
             assert(degree < FIB_MAX_DEGREE);
         }
 
@@ -175,9 +159,7 @@ static void fib_consolidate(FibHeap* heap) {
             heap->min->right = heap->min;
         } else {
             fib_merge_cycles(heap->min, by_degree[degree]);
-            if (fib_less(by_degree[degree], heap->min)) {
-                heap->min = by_degree[degree];
-            }
+            if (fib_less(by_degree[degree], heap->min)) heap->min = by_degree[degree];
         }
     }
 
@@ -188,21 +170,16 @@ static void fib_cut(FibHeap* heap, FibNode* node, FibNode* parent) {
     if (node->right == node) {
         parent->child = NULL;
     } else {
-        if (parent->child == node) {
-            parent->child = node->right;
-        }
-
+        if (parent->child == node) parent->child = node->right;
         node->left->right = node->right;
         node->right->left = node->left;
     }
 
     parent->degree--;
-
     node->left = node;
     node->right = node;
     node->parent = NULL;
     node->mark = 0;
-
     fib_add_root(heap, node);
 }
 
@@ -235,9 +212,7 @@ static void fib_heap_decrease_key_to(FibHeap* heap, int vertex, long long new_ke
         fib_cascading_cut(heap, parent);
     }
 
-    if (fib_less(node, heap->min)) {
-        heap->min = node;
-    }
+    if (fib_less(node, heap->min)) heap->min = node;
 }
 
 static FibNode* fib_heap_extract_min_node(FibHeap* heap) {
@@ -305,7 +280,6 @@ static void fib_free_cycle(FibNode* start) {
 
 static void fib_heap_dtor(FibHeap* heap) {
     if (heap == NULL) return;
-
     fib_free_cycle(heap->min);
     free(heap);
 }

@@ -1,7 +1,10 @@
+from pathlib import Path
 import csv
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
 
 def read_csv(path):
     xs = []
@@ -39,13 +42,13 @@ def plot_file(path, title, output):
     plt.savefig(output)
 
 plot_file(
-    "./results/results_point3_sparse.csv",
+    ROOT_DIR / "results" / "results_point3_sparse.csv",
     "Point 3: Dijkstra on sparse graphs",
-    "./plots/plot_point3_sparse.svg"
+    ROOT_DIR / "plots" / "plot_point3_sparse.svg"
 )
 
 plot_file(
-    "./results/results_point3_dense.csv",
+    ROOT_DIR / "results" / "results_point3_dense.csv",
     "Point 3: Dijkstra on dense graphs",
-    "./plots/plot_point3_dense.svg"
+    ROOT_DIR / "plots" / "plot_point3_dense.svg"
 )

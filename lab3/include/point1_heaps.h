@@ -53,19 +53,15 @@ static void sift_down(Heap* heap, size_t index) {
         size_t right_child = index * 2 + 2;
         size_t i_min = index;
 
-        if (left_child < heap->size &&
-            heap->data[left_child].value < heap->data[i_min].value) {
+        if (left_child < heap->size && heap->data[left_child].value < heap->data[i_min].value) {
             i_min = left_child;
         }
 
-        if (right_child < heap->size &&
-            heap->data[right_child].value < heap->data[i_min].value) {
+        if (right_child < heap->size && heap->data[right_child].value < heap->data[i_min].value) {
             i_min = right_child;
         }
 
-        if (i_min == index) {
-            return;
-        }
+        if (i_min == index) return;
 
         swap(heap, index, i_min);
         index = i_min;
@@ -180,20 +176,12 @@ static int heap_is_valid(const Heap* heap) {
         size_t left_child = i * 2 + 1;
         size_t right_child = i * 2 + 2;
 
-        if (left_child < heap->size &&
-            heap->data[left_child].value < heap->data[i].value) {
-            return 0;
-        }
-
-        if (right_child < heap->size &&
-            heap->data[right_child].value < heap->data[i].value) {
-            return 0;
-        }
+        if (left_child < heap->size && heap->data[left_child].value < heap->data[i].value) return 0;
+        if (right_child < heap->size && heap->data[right_child].value < heap->data[i].value) return 0;
     }
 
     return 1;
 }
-
 
 static int heap_empty(Heap* heap) {
     assert(heap);
@@ -232,7 +220,5 @@ static HeapElem heap_extract_min_elem(Heap* heap) {
 
     return min_elem;
 }
-
-
 
 #endif

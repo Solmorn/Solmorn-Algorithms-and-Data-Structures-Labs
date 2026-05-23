@@ -1,13 +1,16 @@
+from pathlib import Path
 import csv
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+ROOT_DIR = Path(__file__).resolve().parents[1]
+
 xs = []
 linear = []
 insert_build = []
 
-with open("./results/results_point1.csv", "r", encoding="utf-8") as file:
+with open(ROOT_DIR / "results" / "results_point1.csv", "r", encoding="utf-8") as file:
     reader = csv.DictReader(file)
     for row in reader:
         xs.append(int(row["n"]))
@@ -23,4 +26,4 @@ plt.title("Point 1: binary heap build")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.savefig("./plots/plot_point1.svg")
+plt.savefig(ROOT_DIR / "plots" / "plot_point1.svg")
