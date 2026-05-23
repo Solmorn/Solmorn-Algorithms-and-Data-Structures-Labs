@@ -22,6 +22,7 @@ typedef struct {
 
 static Graph* graph_ctor(int n, int m) {
     Graph* graph = (Graph*)calloc(1, sizeof(Graph));
+    assert(graph != NULL);
 
     graph->n = n;
     graph->m = m;

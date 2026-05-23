@@ -1,18 +1,25 @@
+#include <assert.h>
 #include <stdlib.h>
 
 #include "../include/point3_dijkstra.h"
 #include "../include/point2_binomial_heap.h"
 
 static HeapElem** dijkstra_binomial_positions_ctor(int n) {
-    return (HeapElem**)calloc((size_t)n, sizeof(HeapElem*));
+    HeapElem** positions = (HeapElem**)calloc((size_t)n, sizeof(HeapElem*));
+    assert(positions != NULL);
+
+    return positions;
 }
 
 static void dijkstra_binomial_init_positions(HeapElem** positions, int n) {
-    (void)positions;
+    assert(positions != NULL);
+
     (void)n;
 }
 
 static Heap* dijkstra_binomial_heap_ctor(int n, HeapElem** positions) {
+    assert(positions != NULL);
+
     (void)n;
     return heap_ctor_with_positions(positions);
 }

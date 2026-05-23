@@ -31,6 +31,8 @@ static int fib_less(FibNode* a, FibNode* b) {
 
 static FibHeap* fib_heap_ctor(FibNode** positions) {
     FibHeap* heap = (FibHeap*)calloc(1, sizeof(FibHeap));
+    assert(heap != NULL);
+
     heap->min = NULL;
     heap->size = 0;
     heap->positions = positions;

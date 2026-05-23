@@ -1,14 +1,22 @@
 #ifndef POINT3_DIJKSTRA_IMPL_H
 #define POINT3_DIJKSTRA_IMPL_H
 
+#include <assert.h>
 #include <limits.h>
 #include <stdlib.h>
 
 static const long long INF = LLONG_MAX / 4;
 
 void DIJKSTRA_FUNC(const Graph* graph, int source, long long* dist) {
+    assert(graph != NULL);
+    assert(dist != NULL);
+    assert(0 <= source && source < graph->n);
+
     int* used = (int*)calloc((size_t)graph->n, sizeof(int));
+    assert(used != NULL);
+
     DIJKSTRA_POS_TYPE positions = DIJKSTRA_POSITIONS_CTOR(graph->n);
+    assert(positions != NULL);
 
     for (int i = 0; i < graph->n; i++) {
         dist[i] = INF;
@@ -17,6 +25,7 @@ void DIJKSTRA_FUNC(const Graph* graph, int source, long long* dist) {
     DIJKSTRA_INIT_POSITIONS(positions, graph->n);
 
     DIJKSTRA_HEAP_TYPE* heap = DIJKSTRA_HEAP_CTOR(graph->n, positions);
+    assert(heap != NULL);
 
     dist[source] = 0;
     DIJKSTRA_HEAP_INSERT(heap, 0, source);

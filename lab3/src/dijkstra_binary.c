@@ -1,19 +1,27 @@
+#include <assert.h>
 #include <stdlib.h>
 
 #include "../include/point3_dijkstra.h"
 #include "../include/point1_heaps.h"
 
 static int* dijkstra_binary_positions_ctor(int n) {
-    return (int*)calloc((size_t)n, sizeof(int));
+    int* positions = (int*)calloc((size_t)n, sizeof(int));
+    assert(positions != NULL);
+
+    return positions;
 }
 
 static void dijkstra_binary_init_positions(int* positions, int n) {
+    assert(positions != NULL);
+
     for (int i = 0; i < n; i++) {
         positions[i] = -1;
     }
 }
 
 static Heap* dijkstra_binary_heap_ctor(int n, int* positions) {
+    assert(positions != NULL);
+
     return heap_ctor((size_t)n + 1, positions);
 }
 

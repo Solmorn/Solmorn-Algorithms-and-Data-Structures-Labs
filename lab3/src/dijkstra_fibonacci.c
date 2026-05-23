@@ -1,18 +1,25 @@
+#include <assert.h>
 #include <stdlib.h>
 
 #include "../include/point3_dijkstra.h"
 #include "../include/point3_fibonacci_heap.h"
 
 static FibNode** dijkstra_fibonacci_positions_ctor(int n) {
-    return (FibNode**)calloc((size_t)n, sizeof(FibNode*));
+    FibNode** positions = (FibNode**)calloc((size_t)n, sizeof(FibNode*));
+    assert(positions != NULL);
+
+    return positions;
 }
 
 static void dijkstra_fibonacci_init_positions(FibNode** positions, int n) {
-    (void)positions;
+    assert(positions != NULL);
+
     (void)n;
 }
 
 static FibHeap* dijkstra_fibonacci_heap_ctor(int n, FibNode** positions) {
+    assert(positions != NULL);
+
     (void)n;
     return fib_heap_ctor(positions);
 }

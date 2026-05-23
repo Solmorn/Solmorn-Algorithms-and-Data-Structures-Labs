@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <limits.h>
 #include <stdlib.h>
 
@@ -6,18 +7,23 @@
 static const long long INF = LLONG_MAX / 4;
 
 void dijkstra_naive(const Graph* graph, int source, long long* dist) {
-    int* used = (int*)calloc((size_t)graph->n, sizeof(int));
+    assert(graph != NULL);
+    assert(dist != NULL);
+    assert(0 <= source && source < graph->n);
 
-    for (int i = 0; i < graph->n; ++i) {
+    int* used = (int*)calloc((size_t)graph->n, sizeof(int));
+    assert(used != NULL);
+
+    for (int i = 0; i < graph->n; i++) {
         dist[i] = INF;
     }
 
     dist[source] = 0;
 
-    for (int iter = 0; iter < graph->n; ++iter) {
+    for (int iter = 0; iter < graph->n; iter++) {
         int v = -1;
 
-        for (int i = 0; i < graph->n; ++i) {
+        for (int i = 0; i < graph->n; i++) {
             if (used[i]) continue;
 
             if (v == -1 || dist[i] < dist[v]) {

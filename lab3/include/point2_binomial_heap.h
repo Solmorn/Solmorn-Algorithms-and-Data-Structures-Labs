@@ -32,6 +32,8 @@ static HeapElem* heap_elem_ctor(long long value, int request_index) {
 
 static Heap* heap_ctor(void) {
     Heap* heap = (Heap*)calloc(1, sizeof(Heap));
+    assert(heap != NULL);
+
     heap->head = NULL;
     heap->positions = NULL;
     return heap;
@@ -39,6 +41,8 @@ static Heap* heap_ctor(void) {
 
 static Heap* heap_ctor_with_positions(HeapElem** positions) {
     Heap* heap = (Heap*)calloc(1, sizeof(Heap));
+    assert(heap != NULL);
+
     heap->head = NULL;
     heap->positions = positions;
     return heap;
