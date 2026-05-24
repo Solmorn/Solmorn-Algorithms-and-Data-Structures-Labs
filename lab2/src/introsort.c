@@ -3,51 +3,34 @@
 
 #include "../include/point7_sorts.h"
 
-#define SMALL_BLOCK_CUTOFF 32
-#define OPTIMAL_HEAP_K 4
-#define BEST_C 2
+static const ptrdiff_t MIN_SORT_SIZE = 2;
+static const ptrdiff_t MIDDLE_DIVISOR = 2;
+static const ptrdiff_t SMALL_BLOCK_CUTOFF = 32;
+static const ptrdiff_t SHELL_STEP_DIVISOR = 9;
+static const ptrdiff_t SHELL_STEP_MULTIPLIER = 3;
+static const ptrdiff_t SHELL_STEP_ADDEND = 1;
+static const size_t OPTIMAL_HEAP_K = 4u;
+static const int INTROSORT_C1 = 1;
+static const int INTROSORT_C2 = 2;
+static const int INTROSORT_C3 = 3;
+static const int INTROSORT_C4 = 4;
+static const int BEST_C = 2;
 
 typedef struct {
     ptrdiff_t equals_from;
     ptrdiff_t equals_to;
 } fat_partition_result_t;
 
-static void swap_int(int* a, int* b) {
-    int temp = *a;
-    *a = *b;
-    *b = temp;
-}
+void lab2_swap_int(int* a, int* b);
+int lab2_median3_values(int x, int y, int z);
 
 static ptrdiff_t middle_index(ptrdiff_t l, ptrdiff_t r) {
-    return l + (r - l) / 2;
-}
-
-static int median3_values(int x, int y, int z) {
-
-    if (x > y) {
-        int t = x;
-        x = y;
-        y = t;
-    }
-
-    if (y > z) {
-        int t = y;
-        y = z;
-        z = t;
-    }
-
-    if (x > y) {
-        int t = x;
-        x = y;
-        y = t;
-    }
-
-    return y;
+    return l + (r - l) / MIDDLE_DIVISOR;
 }
 
 static int select_pivot_median3(const int* a, ptrdiff_t l, ptrdiff_t r) {
     ptrdiff_t m = middle_index(l, r);
-    return median3_values(a[l], a[m], a[r]);
+    return lab2_median3_values(a[l], a[m], a[r]);
 }
 
 
@@ -56,19 +39,19 @@ static void shell_sort_range(int* a, ptrdiff_t l, ptrdiff_t r) {
 
     ptrdiff_t n = r - l + 1;
 
-    if (n < 2) {
+    if (n < MIN_SORT_SIZE) {
         return;
     }
 
     ptrdiff_t step = 1;
 
-    while (step <= n / 9) {
-        step = step * 3 + 1;
+    while (step <= n / SHELL_STEP_DIVISOR) {
+        step = step * SHELL_STEP_MULTIPLIER + SHELL_STEP_ADDEND;
     }
 
-    for (; step > 0; step /= 3) {
+    for (; step > 0; step /= SHELL_STEP_MULTIPLIER) {
 
-        for (ptrdiff_t i = l + step; i <= r; ++i) {
+        for (ptrdiff_t i = l + step; i <= r; i++) {
 
             int value = a[i];
             ptrdiff_t j = i;
@@ -99,11 +82,11 @@ static fat_partition_result_t fat_partition(int* a, ptrdiff_t l, ptrdiff_t r) {
     while (mid <= right) {
 
         if (a[mid] < pivot) {
-            swap_int(&a[left++], &a[mid++]);
+            lab2_swap_int(&a[left++], &a[mid++]);
         } else if (a[mid] == pivot) {
-            ++mid;
+            mid++;
         } else {
-            swap_int(&a[mid], &a[right--]);
+            lab2_swap_int(&a[mid], &a[right--]);
         }
     }
 
@@ -119,9 +102,9 @@ static int floor_log2_size(size_t n) {
 
     int result = 0;
 
-    while (n > 1) {
-        n >>= 1;
-        ++result;
+    while (n > 1u) {
+        n >>= 1u;
+        result++;
     }
 
     return result;
@@ -129,11 +112,11 @@ static int floor_log2_size(size_t n) {
 
 
 static size_t heap_parent(size_t index, size_t k) {
-    return (index - 1) / k;
+    return (index - 1u) / k;
 }
 
 static size_t heap_first_child(size_t index, size_t k) {
-    return index * k + 1;
+    return index * k + 1u;
 }
 
 static int heap_has_child(size_t index, size_t heap_size, size_t k) {
@@ -150,7 +133,7 @@ static size_t heap_max_child_index(const int* base, size_t index, size_t heap_si
         last_exclusive = heap_size;
     }
 
-    for (size_t child = first_child + 1; child < last_exclusive; ++child) {
+    for (size_t child = first_child + 1u; child < last_exclusive; child++) {
         if (base[child] > base[best_child]) {
             best_child = child;
         }
@@ -189,14 +172,14 @@ static void heap_bottom_up_sift_down(int* base, size_t start, size_t heap_size, 
 }
 
 static void heap_build(int* base, size_t n, size_t k) {
-    if (n < 2) {
+    if ((ptrdiff_t)n < MIN_SORT_SIZE) {
         return;
     }
 
-    size_t last_internal = (n - 2) / k;
+    size_t last_internal = (n - 2u) / k;
 
-    for (size_t i = last_internal + 1; i > 0; --i) {
-        heap_bottom_up_sift_down(base, i - 1, n, k);
+    for (size_t i = last_internal + 1u; i > 0u; i--) {
+        heap_bottom_up_sift_down(base, i - 1u, n, k);
     }
 }
 
@@ -204,15 +187,15 @@ static void heap_sort_range(int* a, ptrdiff_t l, ptrdiff_t r) {
     size_t n = (size_t)(r - l + 1);
     int* base = a + l;
 
-    if (n < 2) {
+    if ((ptrdiff_t)n < MIN_SORT_SIZE) {
         return;
     }
 
     heap_build(base, n, OPTIMAL_HEAP_K);
 
-    for (size_t heap_size = n; heap_size > 1; --heap_size) {
-        swap_int(&base[0], &base[heap_size - 1]);
-        heap_bottom_up_sift_down(base, 0, heap_size - 1, OPTIMAL_HEAP_K);
+    for (size_t heap_size = n; heap_size > 1u; heap_size--) {
+        lab2_swap_int(&base[0], &base[heap_size - 1u]);
+        heap_bottom_up_sift_down(base, 0u, heap_size - 1u, OPTIMAL_HEAP_K);
     }
 }
 
@@ -249,7 +232,7 @@ static void quick_sort_best_impl(int* a, ptrdiff_t l, ptrdiff_t r) {
 }
 
 void quick_sort_best_cutoff32(int* arr, size_t n) {
-    if (n < 2) {
+    if ((ptrdiff_t)n < MIN_SORT_SIZE) {
         return;
     }
 
@@ -269,7 +252,7 @@ static void introsort_impl(int* a, ptrdiff_t l, ptrdiff_t r, int depth_limit) {
             return;
         }
 
-        --depth_limit;
+        depth_limit--;
 
         fat_partition_result_t part = fat_partition(a, l, r);
 
@@ -296,7 +279,7 @@ static void introsort_impl(int* a, ptrdiff_t l, ptrdiff_t r, int depth_limit) {
 }
 
 static void introsort_with_c(int* arr, size_t n, int c) {
-    if (n < 2) {
+    if ((ptrdiff_t)n < MIN_SORT_SIZE) {
         return;
     }
 
@@ -305,22 +288,21 @@ static void introsort_with_c(int* arr, size_t n, int c) {
 }
 
 void introsort_c1(int* arr, size_t n) {
-    introsort_with_c(arr, n, 1);
+    introsort_with_c(arr, n, INTROSORT_C1);
 }
 
 void introsort_c2(int* arr, size_t n) {
-    introsort_with_c(arr, n, 2);
+    introsort_with_c(arr, n, INTROSORT_C2);
 }
 
 void introsort_c3(int* arr, size_t n) {
-    introsort_with_c(arr, n, 3);
+    introsort_with_c(arr, n, INTROSORT_C3);
 }
 
 void introsort_c4(int* arr, size_t n) {
-    introsort_with_c(arr, n, 4);
+    introsort_with_c(arr, n, INTROSORT_C4);
 }
 
 void introsort_best(int* arr, size_t n) {
     introsort_with_c(arr, n, BEST_C);
 }
-

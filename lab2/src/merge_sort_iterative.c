@@ -1,90 +1,78 @@
 #include <assert.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 
 #include "../include/point3_sorts.h"
 
+static const size_t MIN_SORT_SIZE = 2u;
+static const size_t MERGE_BLOCK_MULTIPLIER = 2u;
+
 static size_t min_size(size_t a, size_t b) {
     return (a < b) ? a : b;
 }
 
-static int* merge_ints(int* arr1, int* arr2, size_t size1, size_t size2, int* arr0) {
-    assert(arr1 != NULL);
-    assert(arr2 != NULL);
-    assert(arr0 != NULL);
+static void merge_range(int* arr, size_t left, size_t middle, size_t right, int* res) {
+    assert(arr != NULL);
+    assert(res != NULL);
+    assert(left <= middle);
+    assert(middle <= right);
 
-    int* res = (int*)calloc(size1 + size2, sizeof(int));
-    if (res == NULL) {
-        abort();
-    }
+    size_t left_pos = left;
+    size_t right_pos = middle;
+    size_t res_pos = left;
 
-    size_t added_elements1 = 0;
-    size_t added_elements2 = 0;
-    size_t index = 0;
-    size_t all_size = size1 + size2;
-
-    while (index < all_size) {
-        if (added_elements1 == size1 || added_elements2 == size2) {
-            break;
-        }
-
-        if (*arr1 < *arr2) {
-            res[index] = *arr1;
-            ++arr1;
-            ++added_elements1;
+    while (left_pos < middle && right_pos < right) {
+        if (arr[left_pos] < arr[right_pos]) {
+            res[res_pos] = arr[left_pos];
+            left_pos++;
         } else {
-            res[index] = *arr2;
-            ++arr2;
-            ++added_elements2;
+            res[res_pos] = arr[right_pos];
+            right_pos++;
         }
 
-        ++index;
+        res_pos++;
     }
 
-    if (added_elements1 == size1) {
-        while (added_elements2 < size2) {
-            res[index] = *arr2;
-            ++arr2;
-            ++index;
-            ++added_elements2;
-        }
-    } else if (added_elements2 == size2) {
-        while (added_elements1 < size1) {
-            res[index] = *arr1;
-            ++arr1;
-            ++index;
-            ++added_elements1;
-        }
+    while (left_pos < middle) {
+        res[res_pos] = arr[left_pos];
+        left_pos++;
+        res_pos++;
     }
 
-    index = 0;
-    while (index < all_size) {
-        arr0[index] = res[index];
-        ++index;
+    while (right_pos < right) {
+        res[res_pos] = arr[right_pos];
+        right_pos++;
+        res_pos++;
     }
 
-    free(res);
-    return arr0;
+    for (size_t i = left; i < right; i++) {
+        arr[i] = res[i];
+    }
 }
 
 void merge_sort_iterative(int* arr, size_t n) {
-    if (n < 2) {
+    if (n < MIN_SORT_SIZE) {
         return;
     }
 
-    for (size_t width = 1; width < n; width *= 2) {
-        for (size_t left = 0; left < n; left += 2 * width) {
-            size_t mid = min_size(left + width, n);
-            size_t right = min_size(left + 2 * width, n);
+    int* res = (int*)malloc(n * sizeof(res[0]));
+    if (res == NULL) {
+        return;
+    }
 
-            size_t size1 = mid - left;
-            size_t size2 = right - mid;
+    for (size_t width = 1u; width < n; width *= MERGE_BLOCK_MULTIPLIER) {
+        for (size_t left = 0u; left < n; left += MERGE_BLOCK_MULTIPLIER * width) {
+            size_t middle = min_size(left + width, n);
+            size_t right = min_size(left + MERGE_BLOCK_MULTIPLIER * width, n);
 
-            if (size1 == 0 || size2 == 0) {
+            if (middle == left || middle == right) {
                 continue;
             }
 
-            merge_ints(arr + left, arr + mid, size1, size2, arr + left);
+            merge_range(arr, left, middle, right, res);
         }
     }
+
+    free(res);
 }

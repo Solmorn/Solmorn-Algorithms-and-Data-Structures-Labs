@@ -2,36 +2,37 @@
 
 #include "../include/point4_sorts.h"
 
+static const ptrdiff_t MIN_SORT_SIZE = 2;
+static const ptrdiff_t MIDDLE_DIVISOR = 2;
+static const ptrdiff_t QUICK_SORT_CUTOFF = 40;
+
 typedef struct {
     ptrdiff_t equals_from;
     ptrdiff_t equals_to;
 } fat_partition_result_t;
 
-static void swap_int(int* a, int* b) {
-    int temp = *a;
-    *a = *b;
-    *b = temp;
-}
+void lab2_swap_int(int* a, int* b);
 
 
 static ptrdiff_t middle_index(ptrdiff_t left, ptrdiff_t right) {
-    return left + (right - left) / 2;
+    return left + (right - left) / MIDDLE_DIVISOR;
 }
 
 
 
 static ptrdiff_t lomuto_partition(int* a, ptrdiff_t l, ptrdiff_t r) {
-    int pivot = a[middle_index(l, r)];
-    swap_int(&a[r], &a[middle_index(l, r)]);
+    ptrdiff_t middle = middle_index(l, r);
+    int pivot = a[middle];
+    lab2_swap_int(&a[r], &a[middle]);
 
     ptrdiff_t i = l;
-    for (ptrdiff_t j = l; j <= r; ++j) {
+    for (ptrdiff_t j = l; j <= r; j++) {
         if (a[j] < pivot) {
-            swap_int(&a[i++], &a[j]);
+            lab2_swap_int(&a[i++], &a[j]);
         }
     }
 
-    swap_int(&a[i], &a[r]);
+    lab2_swap_int(&a[i], &a[r]);
     return i;
 }
 
@@ -47,7 +48,7 @@ static void quick_sort_lomuto_impl(int* a, ptrdiff_t l, ptrdiff_t r) {
 }
 
 void quick_sort_lomuto(int* arr, size_t n) {
-    if (n < 2) {
+    if ((ptrdiff_t)n < MIN_SORT_SIZE) {
         return;
     }
 
@@ -64,18 +65,18 @@ static ptrdiff_t hoare_partition(int* a, ptrdiff_t l, ptrdiff_t r) {
 
     while (i <= j) {
         while (a[i] < pivot) {
-            ++i;
+            i++;
         }
 
         while (a[j] > pivot) {
-            --j;
+            j--;
         }
 
         if (i >= j) {
             return j;
         }
 
-        swap_int(&a[i++], &a[j--]);
+        lab2_swap_int(&a[i++], &a[j--]);
     }
 
     return j;
@@ -93,7 +94,7 @@ static void quick_sort_hoare_impl(int* a, ptrdiff_t l, ptrdiff_t r) {
 }
 
 void quick_sort_hoare(int* arr, size_t n) {
-    if (n < 2) {
+    if ((ptrdiff_t)n < MIN_SORT_SIZE) {
         return;
     }
 
@@ -109,11 +110,11 @@ static fat_partition_result_t fat_partition(int* a, ptrdiff_t l, ptrdiff_t r) {
 
     while (mid <= right) {
         if (a[mid] < pivot) {
-            swap_int(&a[left++], &a[mid++]);
+            lab2_swap_int(&a[left++], &a[mid++]);
         } else if (a[mid] == pivot) {
-            ++mid;
+            mid++;
         } else {
-            swap_int(&a[mid], &a[right--]);
+            lab2_swap_int(&a[mid], &a[right--]);
         }
     }
 
@@ -135,7 +136,7 @@ static void quick_sort_fat_impl(int* a, ptrdiff_t l, ptrdiff_t r) {
 }
 
 void quick_sort_fat(int* arr, size_t n) {
-    if (n < 2) {
+    if ((ptrdiff_t)n < MIN_SORT_SIZE) {
         return;
     }
 
@@ -170,7 +171,7 @@ static void quick_sort_fat_one_branch_impl(int* a, ptrdiff_t l, ptrdiff_t r) {
 }
 
 void quick_sort_fat_one_branch(int* arr, size_t n) {
-    if (n < 2) {
+    if ((ptrdiff_t)n < MIN_SORT_SIZE) {
         return;
     }
 
@@ -179,13 +180,13 @@ void quick_sort_fat_one_branch(int* arr, size_t n) {
 
 
 static void insertion_sort_range(int* a, ptrdiff_t l, ptrdiff_t r) {
-    for (ptrdiff_t i = l + 1; i <= r; ++i) {
+    for (ptrdiff_t i = l + 1; i <= r; i++) {
         int value = a[i];
         ptrdiff_t j = i;
 
         while (j > l && a[j - 1] > value) {
             a[j] = a[j - 1];
-            --j;
+            j--;
         }
 
         a[j] = value;
@@ -193,10 +194,8 @@ static void insertion_sort_range(int* a, ptrdiff_t l, ptrdiff_t r) {
 }
 
 static void quick_sort_fat_one_branch_cutoff40_impl(int* a, ptrdiff_t l, ptrdiff_t r) {
-    const ptrdiff_t cutoff = 40;
-
     while (l < r) {
-        if (r - l + 1 <= cutoff) {
+        if (r - l + 1 <= QUICK_SORT_CUTOFF) {
             insertion_sort_range(a, l, r);
             return;
         }
@@ -226,7 +225,7 @@ static void quick_sort_fat_one_branch_cutoff40_impl(int* a, ptrdiff_t l, ptrdiff
 }
 
 void quick_sort_fat_one_branch_cutoff40(int* arr, size_t n) {
-    if (n < 2) {
+    if ((ptrdiff_t)n < MIN_SORT_SIZE) {
         return;
     }
 

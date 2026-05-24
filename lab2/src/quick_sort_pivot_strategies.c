@@ -5,6 +5,10 @@
 #include "../include/point5_sorts.h"
 
 static const ptrdiff_t MEDIAN_GROUP_SIZE = 5;
+static const ptrdiff_t MIN_SORT_SIZE = 2;
+static const ptrdiff_t MIDDLE_DIVISOR = 2;
+static const ptrdiff_t RANDOM_INDEX_OFFSET = 1;
+static const ptrdiff_t QUICK_SORT_CUTOFF = 40;
 
 typedef int (*pivot_selector_t)(int* a, ptrdiff_t l, ptrdiff_t r);
 
@@ -13,40 +17,15 @@ typedef struct {
     ptrdiff_t equals_to;
 } fat_partition_result_t;
 
-static void swap_int(int* a, int* b) {
-    int temp = *a;
-    *a = *b;
-    *b = temp;
-}
+void lab2_swap_int(int* a, int* b);
+int lab2_median3_values(int x, int y, int z);
 
 static ptrdiff_t middle_index(ptrdiff_t l, ptrdiff_t r) {
-    return l + (r - l) / 2;
+    return l + (r - l) / MIDDLE_DIVISOR;
 }
 
 static ptrdiff_t min_ptrdiff(ptrdiff_t x, ptrdiff_t y) {
     return (x < y) ? x : y;
-}
-
-static int median3_values(int x, int y, int z) {
-    if (x > y) {
-        int t = x;
-        x = y;
-        y = t;
-    }
-
-    if (y > z) {
-        int t = y;
-        y = z;
-        z = t;
-    }
-
-    if (x > y) {
-        int t = x;
-        x = y;
-        y = t;
-    }
-
-    return y;
 }
 
 static void ensure_random_seeded(void) {
@@ -60,18 +39,18 @@ static void ensure_random_seeded(void) {
 
 static ptrdiff_t random_index(ptrdiff_t l, ptrdiff_t r) {
     ensure_random_seeded();
-    return l + (ptrdiff_t)(rand() % (int)(r - l + 1));
+    return l + (ptrdiff_t)(rand() % (int)(r - l + RANDOM_INDEX_OFFSET));
 }
 
 
 static void insertion_sort_range(int* a, ptrdiff_t l, ptrdiff_t r) {
-    for (ptrdiff_t i = l + 1; i <= r; ++i) {
+    for (ptrdiff_t i = l + 1; i <= r; i++) {
         int value = a[i];
         ptrdiff_t j = i;
 
         while (j > l && a[j - 1] > value) {
             a[j] = a[j - 1];
-            --j;
+            j--;
         }
 
         a[j] = value;
@@ -86,11 +65,11 @@ static fat_partition_result_t fat_partition_by_value(int* a, ptrdiff_t l, ptrdif
 
     while (mid <= right) {
         if (a[mid] < pivot) {
-            swap_int(&a[left++], &a[mid++]);
+            lab2_swap_int(&a[left++], &a[mid++]);
         } else if (a[mid] == pivot) {
-            ++mid;
+            mid++;
         } else {
-            swap_int(&a[mid], &a[right--]);
+            lab2_swap_int(&a[mid], &a[right--]);
         }
     }
 
@@ -107,7 +86,7 @@ static int pivot_middle(int* a, ptrdiff_t l, ptrdiff_t r) {
 
 static int pivot_median3(int* a, ptrdiff_t l, ptrdiff_t r) {
     ptrdiff_t m = middle_index(l, r);
-    return median3_values(a[l], a[m], a[r]);
+    return lab2_median3_values(a[l], a[m], a[r]);
 }
 
 static int pivot_random(int* a, ptrdiff_t l, ptrdiff_t r) {
@@ -119,7 +98,7 @@ static int pivot_median3_random(int* a, ptrdiff_t l, ptrdiff_t r) {
     ptrdiff_t i2 = random_index(l, r);
     ptrdiff_t i3 = random_index(l, r);
 
-    return median3_values(a[i1], a[i2], a[i3]);
+    return lab2_median3_values(a[i1], a[i2], a[i3]);
 }
 
 
@@ -135,17 +114,17 @@ static int select_kth_median_of_medians(int* a, ptrdiff_t l, ptrdiff_t r, ptrdif
         ptrdiff_t medians_count = 0;
 
         for (ptrdiff_t group_start = l; group_start <= r; group_start += MEDIAN_GROUP_SIZE) {
-            ptrdiff_t group_end = min_ptrdiff(group_start + 4, r);
+            ptrdiff_t group_end = min_ptrdiff(group_start + MEDIAN_GROUP_SIZE - 1, r);
             insertion_sort_range(a, group_start, group_end);
 
-            ptrdiff_t median_index = group_start + (group_end - group_start) / 2;
-            swap_int(&a[l + medians_count], &a[median_index]);
-            ++medians_count;
+            ptrdiff_t median_index = group_start + (group_end - group_start) / MIDDLE_DIVISOR;
+            lab2_swap_int(&a[l + medians_count], &a[median_index]);
+            medians_count++;
         }
 
         ptrdiff_t med_l = l;
         ptrdiff_t med_r = l + medians_count - 1;
-        ptrdiff_t med_k = med_l + (med_r - med_l) / 2;
+        ptrdiff_t med_k = med_l + (med_r - med_l) / MIDDLE_DIVISOR;
 
         int pivot = select_kth_median_of_medians(a, med_l, med_r, med_k);
         fat_partition_result_t part = fat_partition_by_value(a, l, r, pivot);
@@ -161,7 +140,7 @@ static int select_kth_median_of_medians(int* a, ptrdiff_t l, ptrdiff_t r, ptrdif
 }
 
 static int pivot_median_of_medians(int* a, ptrdiff_t l, ptrdiff_t r) {
-    ptrdiff_t k = l + (r - l) / 2;
+    ptrdiff_t k = l + (r - l) / MIDDLE_DIVISOR;
     return select_kth_median_of_medians(a, l, r, k);
 }
 
@@ -172,10 +151,8 @@ static void quick_sort_impl(
     ptrdiff_t r,
     pivot_selector_t select_pivot
 ) {
-    const ptrdiff_t cutoff = 40;
-
     while (l < r) {
-        if (r - l + 1 <= cutoff) {
+        if (r - l + 1 <= QUICK_SORT_CUTOFF) {
             insertion_sort_range(a, l, r);
             return;
         }
@@ -207,7 +184,7 @@ static void quick_sort_impl(
 
 
 void quick_sort_pivot_middle(int* arr, size_t n) {
-    if (n < 2) {
+    if ((ptrdiff_t)n < MIN_SORT_SIZE) {
         return;
     }
 
@@ -215,7 +192,7 @@ void quick_sort_pivot_middle(int* arr, size_t n) {
 }
 
 void quick_sort_pivot_median3(int* arr, size_t n) {
-    if (n < 2) {
+    if ((ptrdiff_t)n < MIN_SORT_SIZE) {
         return;
     }
 
@@ -223,7 +200,7 @@ void quick_sort_pivot_median3(int* arr, size_t n) {
 }
 
 void quick_sort_pivot_random(int* arr, size_t n) {
-    if (n < 2) {
+    if ((ptrdiff_t)n < MIN_SORT_SIZE) {
         return;
     }
 
@@ -231,7 +208,7 @@ void quick_sort_pivot_random(int* arr, size_t n) {
 }
 
 void quick_sort_pivot_median3_random(int* arr, size_t n) {
-    if (n < 2) {
+    if ((ptrdiff_t)n < MIN_SORT_SIZE) {
         return;
     }
 
@@ -239,7 +216,7 @@ void quick_sort_pivot_median3_random(int* arr, size_t n) {
 }
 
 void quick_sort_pivot_median_of_medians(int* arr, size_t n) {
-    if (n < 2) {
+    if ((ptrdiff_t)n < MIN_SORT_SIZE) {
         return;
     }
 

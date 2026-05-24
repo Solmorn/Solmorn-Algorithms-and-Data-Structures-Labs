@@ -7,6 +7,7 @@ CXXFLAGS = -std=c++11 -O2 -Wall -Wextra -Wpedantic -Iinclude -Ithird_party/cpp-T
 BIN_DIR = bin
 SRC_DIR = src
 INC_DIR = include
+SORT_UTILS = $(SRC_DIR)/sort_utils.c
 
 POINT0_BIN = \
 	$(BIN_DIR)/generator \
@@ -65,6 +66,7 @@ $(BIN_DIR)/tester_point1: \
 	$(SRC_DIR)/bubble_sort.c \
 	$(SRC_DIR)/selection_sort.c \
 	$(SRC_DIR)/shell_sort.c \
+	$(SORT_UTILS) \
 	$(INC_DIR)/testing.h \
 	$(INC_DIR)/point1_sorts.h | $(BIN_DIR)
 	$(CC) $(CFLAGS) \
@@ -73,6 +75,7 @@ $(BIN_DIR)/tester_point1: \
 		$(SRC_DIR)/bubble_sort.c \
 		$(SRC_DIR)/selection_sort.c \
 		$(SRC_DIR)/shell_sort.c \
+		$(SORT_UTILS) \
 		-o $@
 
 $(BIN_DIR)/tester_point2: \
@@ -100,61 +103,73 @@ $(BIN_DIR)/tester_point3: \
 $(BIN_DIR)/tester_point4_partitions: \
 	$(SRC_DIR)/tester_point4_partitions.c \
 	$(SRC_DIR)/quick_sort_partitions.c \
+	$(SORT_UTILS) \
 	$(INC_DIR)/testing.h \
 	$(INC_DIR)/point4_sorts.h | $(BIN_DIR)
 	$(CC) $(CFLAGS) \
 		$(SRC_DIR)/tester_point4_partitions.c \
 		$(SRC_DIR)/quick_sort_partitions.c \
+		$(SORT_UTILS) \
 		-o $@
 
 $(BIN_DIR)/tester_point4_optimizations: \
 	$(SRC_DIR)/tester_point4_optimizations.c \
 	$(SRC_DIR)/quick_sort_partitions.c \
+	$(SORT_UTILS) \
 	$(INC_DIR)/testing.h \
 	$(INC_DIR)/point4_sorts.h | $(BIN_DIR)
 	$(CC) $(CFLAGS) \
 		$(SRC_DIR)/tester_point4_optimizations.c \
 		$(SRC_DIR)/quick_sort_partitions.c \
+		$(SORT_UTILS) \
 		-o $@
 
 $(BIN_DIR)/tester_point5: \
 	$(SRC_DIR)/tester_point5.c \
 	$(SRC_DIR)/quick_sort_pivot_strategies.c \
+	$(SORT_UTILS) \
 	$(INC_DIR)/testing.h \
 	$(INC_DIR)/point5_sorts.h | $(BIN_DIR)
 	$(CC) $(CFLAGS) \
 		$(SRC_DIR)/tester_point5.c \
 		$(SRC_DIR)/quick_sort_pivot_strategies.c \
+		$(SORT_UTILS) \
 		-o $@
 
 $(BIN_DIR)/tester_point6: \
 	$(SRC_DIR)/tester_point6.c \
 	$(SRC_DIR)/quick_sort_shell_cutoff.c \
+	$(SORT_UTILS) \
 	$(INC_DIR)/testing.h \
 	$(INC_DIR)/point6_sorts.h | $(BIN_DIR)
 	$(CC) $(CFLAGS) \
 		$(SRC_DIR)/tester_point6.c \
 		$(SRC_DIR)/quick_sort_shell_cutoff.c \
+		$(SORT_UTILS) \
 		-o $@
 
 $(BIN_DIR)/tester_point7_c: \
 	$(SRC_DIR)/tester_point7_c.c \
 	$(SRC_DIR)/introsort.c \
+	$(SORT_UTILS) \
 	$(INC_DIR)/testing.h \
 	$(INC_DIR)/point7_sorts.h | $(BIN_DIR)
 	$(CC) $(CFLAGS) \
 		$(SRC_DIR)/tester_point7_c.c \
 		$(SRC_DIR)/introsort.c \
+		$(SORT_UTILS) \
 		-o $@
 
 $(BIN_DIR)/tester_point7_final: \
 	$(SRC_DIR)/tester_point7_final.c \
 	$(SRC_DIR)/introsort.c \
+	$(SORT_UTILS) \
 	$(INC_DIR)/testing.h \
 	$(INC_DIR)/point7_sorts.h | $(BIN_DIR)
 	$(CC) $(CFLAGS) \
 		$(SRC_DIR)/tester_point7_final.c \
 		$(SRC_DIR)/introsort.c \
+		$(SORT_UTILS) \
 		-o $@
 
 $(BIN_DIR)/tester_point8: \
