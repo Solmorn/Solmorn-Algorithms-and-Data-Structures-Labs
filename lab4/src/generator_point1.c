@@ -1,18 +1,41 @@
-#include <assert.h>
+#include <errno.h>
+#include <limits.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-static unsigned long long parse_ull(const char* s) {
+static int parse_size(const char* s, size_t* value) {
     char* end = NULL;
-    const unsigned long long value = strtoull(s, &end, 10);
-    assert(end != s && *end == '\0');
-    return value;
+    unsigned long long parsed = 0u;
+
+    errno = 0;
+    parsed = strtoull(s, &end, 10);
+    if (errno != 0 || end == s || *end != '\0' || parsed > (unsigned long long)SIZE_MAX) {
+        return 0;
+    }
+
+    *value = (size_t)parsed;
+    return 1;
+}
+
+static int parse_unsigned(const char* s, unsigned* value) {
+    char* end = NULL;
+    unsigned long parsed = 0u;
+
+    errno = 0;
+    parsed = strtoul(s, &end, 10);
+    if (errno != 0 || end == s || *end != '\0' || parsed > UINT_MAX) {
+        return 0;
+    }
+
+    *value = (unsigned)parsed;
+    return 1;
 }
 
 static void generate_uints(FILE* file, size_t n) {
     fprintf(file, "%zu\n", n);
-    for (size_t i = 0; i < n; ++i) {
+    for (size_t i = 0u; i < n; i++) {
         const unsigned value = (unsigned)rand();
         fprintf(file, "%u\n", value);
     }
@@ -25,19 +48,19 @@ static float random_float_in_range(void) {
 
 static void generate_floats(FILE* file, size_t n) {
     fprintf(file, "%zu\n", n);
-    for (size_t i = 0; i < n; ++i) {
+    for (size_t i = 0u; i < n; i++) {
         const float value = random_float_in_range();
         fprintf(file, "%a\n", value);
     }
 }
 
 static void generate_strings(FILE* file, size_t n) {
-    fprintf(file, "%zu\n", n);
-    char buffer[32];
+    char buffer[32] = {0};
 
-    for (size_t i = 0; i < n; ++i) {
+    fprintf(file, "%zu\n", n);
+    for (size_t i = 0u; i < n; i++) {
         const int len = 5 + rand() % 16;
-        for (int j = 0; j < len; ++j) {
+        for (int j = 0; j < len; j++) {
             buffer[j] = (char)('a' + rand() % 26);
         }
         buffer[len] = '\0';
@@ -46,15 +69,30 @@ static void generate_strings(FILE* file, size_t n) {
 }
 
 int main(int argc, char** argv) {
-    assert(argc == 5);
+    if (argc != 5) {
+        fprintf(stderr, "usage: %s <uint|float|string> <count> <seed> <output>\n", argv[0]);
+        return EXIT_FAILURE;
+    }
 
     const char* mode = argv[1];
-    const size_t n = (size_t)parse_ull(argv[2]);
-    const unsigned seed = (unsigned)parse_ull(argv[3]);
+    size_t n = 0u;
+    unsigned seed = 0u;
     const char* out_path = argv[4];
 
+    if (!parse_size(argv[2], &n)) {
+        fprintf(stderr, "invalid count: %s\n", argv[2]);
+        return EXIT_FAILURE;
+    }
+    if (!parse_unsigned(argv[3], &seed)) {
+        fprintf(stderr, "invalid seed: %s\n", argv[3]);
+        return EXIT_FAILURE;
+    }
+
     FILE* file = fopen(out_path, "w");
-    assert(file != NULL);
+    if (file == NULL) {
+        perror(out_path);
+        return EXIT_FAILURE;
+    }
 
     srand(seed);
 
@@ -65,9 +103,15 @@ int main(int argc, char** argv) {
     } else if (strcmp(mode, "string") == 0) {
         generate_strings(file, n);
     } else {
-        assert(!"unknown generator mode");
+        fprintf(stderr, "unknown generator mode: %s\n", mode);
+        fclose(file);
+        return EXIT_FAILURE;
     }
 
-    fclose(file);
-    return 0;
+    if (fclose(file) != 0) {
+        perror(out_path);
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }

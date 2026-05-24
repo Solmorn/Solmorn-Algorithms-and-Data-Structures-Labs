@@ -31,6 +31,11 @@ static const char* point2_table_names[POINT2_TABLE_KIND_COUNT] = {
 static const double point2_load_factor_scan[] = {0.50, 0.60, 0.70, 0.80, 0.90};
 #define POINT2_LOAD_FACTOR_SCAN_COUNT (sizeof(point2_load_factor_scan) / sizeof(point2_load_factor_scan[0]))
 
+static void point2_exit_alloc_failure(void) {
+    fprintf(stderr, "failed to allocate hash table memory\n");
+    exit(EXIT_FAILURE);
+}
+
 static double point2_default_load_factor(Point2TableKind kind) {
     switch (kind) {
         case POINT2_CHAIN_KIND:     return 1.00;
@@ -52,11 +57,13 @@ static void point2_write_ops_header(FILE* file) {
 
 static double point2_benchmark_insert_chain(double max_load_factor) {
     Point2ChainTable table;
-    point2_chain_init(&table, max_load_factor);
+    if (!point2_chain_init(&table, max_load_factor)) {
+        point2_exit_alloc_failure();
+    }
 
     srand(42);
     const double begin = point2_now_seconds();
-    for (size_t i = 0; i < POINT2_INSERT_BENCH_COUNT; ++i) {
+    for (size_t i = 0u; i < POINT2_INSERT_BENCH_COUNT; i++) {
         (void)point2_chain_insert(&table, point2_rand_int());
     }
     const double end = point2_now_seconds();
@@ -67,11 +74,13 @@ static double point2_benchmark_insert_chain(double max_load_factor) {
 
 static double point2_benchmark_insert_probe(int mode, double max_load_factor) {
     Point2ProbeTable table;
-    point2_probe_init(&table, mode, max_load_factor);
+    if (!point2_probe_init(&table, mode, max_load_factor)) {
+        point2_exit_alloc_failure();
+    }
 
     srand(42);
     const double begin = point2_now_seconds();
-    for (size_t i = 0; i < POINT2_INSERT_BENCH_COUNT; ++i) {
+    for (size_t i = 0u; i < POINT2_INSERT_BENCH_COUNT; i++) {
         (void)point2_probe_insert(&table, point2_rand_int());
     }
     const double end = point2_now_seconds();
@@ -82,11 +91,13 @@ static double point2_benchmark_insert_probe(int mode, double max_load_factor) {
 
 static double point2_benchmark_insert_cuckoo(double max_load_factor) {
     Point2CuckooTable table;
-    point2_cuckoo_init(&table, max_load_factor);
+    if (!point2_cuckoo_init(&table, max_load_factor)) {
+        point2_exit_alloc_failure();
+    }
 
     srand(42);
     const double begin = point2_now_seconds();
-    for (size_t i = 0; i < POINT2_INSERT_BENCH_COUNT; ++i) {
+    for (size_t i = 0u; i < POINT2_INSERT_BENCH_COUNT; i++) {
         (void)point2_cuckoo_insert(&table, point2_rand_int());
     }
     const double end = point2_now_seconds();
@@ -114,10 +125,12 @@ static double point2_benchmark_insert(Point2TableKind kind, double max_load_fact
 
 static size_t point2_run_ops_chain(size_t operation_count, double max_load_factor, double p_insert, double p_find, double p_erase, unsigned seed) {
     Point2ChainTable table;
-    point2_chain_init(&table, max_load_factor);
+    if (!point2_chain_init(&table, max_load_factor)) {
+        point2_exit_alloc_failure();
+    }
     srand(seed);
 
-    for (size_t i = 0; i < operation_count; ++i) {
+    for (size_t i = 0u; i < operation_count; i++) {
         const int op = point2_choose_operation(p_insert, p_find, p_erase);
         const int key = point2_rand_int();
         if (op == POINT2_INSERT_OP) {
@@ -136,10 +149,12 @@ static size_t point2_run_ops_chain(size_t operation_count, double max_load_facto
 
 static size_t point2_run_ops_probe(int mode, size_t operation_count, double max_load_factor, double p_insert, double p_find, double p_erase, unsigned seed) {
     Point2ProbeTable table;
-    point2_probe_init(&table, mode, max_load_factor);
+    if (!point2_probe_init(&table, mode, max_load_factor)) {
+        point2_exit_alloc_failure();
+    }
     srand(seed);
 
-    for (size_t i = 0; i < operation_count; ++i) {
+    for (size_t i = 0u; i < operation_count; i++) {
         const int op = point2_choose_operation(p_insert, p_find, p_erase);
         const int key = point2_rand_int();
         if (op == POINT2_INSERT_OP) {
@@ -158,10 +173,12 @@ static size_t point2_run_ops_probe(int mode, size_t operation_count, double max_
 
 static size_t point2_run_ops_cuckoo(size_t operation_count, double max_load_factor, double p_insert, double p_find, double p_erase, unsigned seed) {
     Point2CuckooTable table;
-    point2_cuckoo_init(&table, max_load_factor);
+    if (!point2_cuckoo_init(&table, max_load_factor)) {
+        point2_exit_alloc_failure();
+    }
     srand(seed);
 
-    for (size_t i = 0; i < operation_count; ++i) {
+    for (size_t i = 0u; i < operation_count; i++) {
         const int op = point2_choose_operation(p_insert, p_find, p_erase);
         const int key = point2_rand_int();
         if (op == POINT2_INSERT_OP) {
@@ -215,8 +232,8 @@ static void point2_run_load_factor_experiment(void) {
     }
 
     point2_write_load_factor_header(file);
-    for (size_t t = 0; t < POINT2_TABLE_KIND_COUNT; ++t) {
-        for (size_t i = 0; i < POINT2_LOAD_FACTOR_SCAN_COUNT; ++i) {
+    for (size_t t = 0u; t < POINT2_TABLE_KIND_COUNT; t++) {
+        for (size_t i = 0u; i < POINT2_LOAD_FACTOR_SCAN_COUNT; i++) {
             const double lf = point2_load_factor_scan[i];
             const double seconds = point2_benchmark_insert((Point2TableKind)t, lf);
             fprintf(file, "%s,%.2f,%.9f\n", point2_table_names[t], lf, seconds);
@@ -237,7 +254,7 @@ static void point2_run_ops_experiment(const char* path, double p_insert, double 
 
     point2_write_ops_header(file);
     for (size_t n = POINT2_OPS_MIN; n <= POINT2_OPS_MAX; n += POINT2_OPS_STEP) {
-        for (size_t t = 0; t < POINT2_TABLE_KIND_COUNT; ++t) {
+        for (size_t t = 0u; t < POINT2_TABLE_KIND_COUNT; t++) {
             size_t final_size = 0u;
             const double seconds = point2_benchmark_ops((Point2TableKind)t, n, p_insert, p_find, p_erase, &final_size);
             fprintf(file, "%zu,%s,%.9f,%zu\n", n, point2_table_names[t], seconds, final_size);
@@ -257,4 +274,3 @@ int main(void) {
     printf("Point 2 testing completed successfully.\n");
     return 0;
 }
-

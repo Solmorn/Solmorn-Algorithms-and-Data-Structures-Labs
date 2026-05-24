@@ -13,6 +13,8 @@ POINT1_TARGET := $(BIN_DIR)/tester_point1
 POINT2_TARGET := $(BIN_DIR)/tester_point2
 POINT3_TARGET := $(BIN_DIR)/tester_point3
 
+POINT2_SRCS := $(SRC_DIR)/tester_point2.c $(SRC_DIR)/point2_hash_tables.c
+
 .PHONY: all point1 point2 point3 clean
 
 all: point1 point2 point3
@@ -30,8 +32,8 @@ $(POINT1_GENERATOR): $(SRC_DIR)/generator_point1.c | $(BIN_DIR)
 $(POINT1_TARGET): $(SRC_DIR)/tester_point1.c | $(BIN_DIR)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -o $@ $(LDFLAGS) $(LDLIBS)
 
-$(POINT2_TARGET): $(SRC_DIR)/tester_point2.c | $(BIN_DIR)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $< -o $@ $(LDFLAGS) $(LDLIBS)
+$(POINT2_TARGET): $(POINT2_SRCS) | $(BIN_DIR)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(POINT2_SRCS) -o $@ $(LDFLAGS) $(LDLIBS)
 
 $(POINT3_TARGET): $(SRC_DIR)/tester_point3.c | $(BIN_DIR)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -o $@ $(LDFLAGS) $(LDLIBS)

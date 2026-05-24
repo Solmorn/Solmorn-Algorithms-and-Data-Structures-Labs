@@ -15,74 +15,75 @@ static inline uint32_t point1_u32_fold_bits(uint32_t value) {
 }
 
 static inline uint64_t point1_hash_uint_remainder(unsigned value) {
-    return (uint64_t)value;
+    return value;
 }
 
 static inline uint64_t point1_hash_uint_bit_repr(unsigned value) {
-    return (uint64_t)point1_u32_fold_bits((uint32_t)value);
+    return point1_u32_fold_bits(value);
 }
 
 static inline uint64_t point1_hash_uint_knuth(unsigned value) {
-    return (uint64_t)((uint32_t)value * 2654435761u);
+    const uint64_t multiplier = 2654435761u;
+    return value * multiplier;
 }
 
-static inline uint32_t point1_float_bits(float value) {
-    uint32_t bits = 0;
+static inline uint64_t point1_float_bits(float value) {
+    uint32_t bits = 0u;
     memcpy(&bits, &value, sizeof(bits));
     return bits;
 }
 
 static inline uint64_t point1_hash_float_cast_int_bits(float value) {
     int32_t as_int = (int32_t)value;
-    uint32_t bits = 0;
+    uint32_t bits = 0u;
     memcpy(&bits, &as_int, sizeof(bits));
-    return (uint64_t)point1_u32_fold_bits(bits);
+    return point1_u32_fold_bits(bits);
 }
 
 static inline uint64_t point1_hash_float_bits(float value) {
-    return (uint64_t)point1_float_bits(value);
+    return point1_float_bits(value);
 }
 
 static inline uint64_t point1_hash_float_mantissa(float value) {
-    return (uint64_t)(point1_float_bits(value) & 0x7fffffu);
+    return point1_float_bits(value) & 0x7fffffu;
 }
 
 static inline uint64_t point1_hash_float_exponent(float value) {
-    return (uint64_t)((point1_float_bits(value) >> 23) & 0xffu);
+    return (point1_float_bits(value) >> 23) & 0xffu;
 }
 
 static inline uint64_t point1_hash_float_mantissa_times_exponent(float value) {
-    uint32_t bits = point1_float_bits(value);
-    uint64_t mantissa = (uint64_t)(bits & 0x7fffffu);
-    uint64_t exponent = (uint64_t)((bits >> 23) & 0xffu);
+    const uint64_t bits = point1_float_bits(value);
+    const uint64_t mantissa = bits & 0x7fffffu;
+    const uint64_t exponent = (bits >> 23) & 0xffu;
     return mantissa * (exponent + 1u);
 }
 
 static inline uint64_t point1_hash_string_length(const char* s) {
-    return (uint64_t)strlen(s);
+    return strlen(s);
 }
 
 static inline uint64_t point1_hash_string_sum(const char* s) {
-    uint64_t sum = 0;
-    for (const unsigned char* p = (const unsigned char*)s; *p != '\0'; ++p) {
-        sum += (uint64_t)(*p);
+    uint64_t sum = 0u;
+    for (const unsigned char* p = (const unsigned char*)s; *p != '\0'; p++) {
+        sum += *p;
     }
     return sum;
 }
 
 static inline uint64_t point1_hash_string_polynomial(const char* s) {
     const uint64_t base = 911382323ull;
-    uint64_t hash = 0;
-    for (const unsigned char* p = (const unsigned char*)s; *p != '\0'; ++p) {
-        hash = hash * base + (uint64_t)(*p) + 1ull;
+    uint64_t hash = 0u;
+    for (const unsigned char* p = (const unsigned char*)s; *p != '\0'; p++) {
+        hash = hash * base + *p + 1ull;
     }
     return hash;
 }
 
 static inline void point1_crc32_init(uint32_t table[256]) {
-    for (uint32_t i = 0; i < 256u; ++i) {
+    for (uint32_t i = 0u; i < 256u; i++) {
         uint32_t c = i;
-        for (int bit = 0; bit < 8; ++bit) {
+        for (int bit = 0; bit < 8; bit++) {
             if ((c & 1u) != 0u) {
                 c = 0xedb88320u ^ (c >> 1);
             } else {
@@ -95,8 +96,8 @@ static inline void point1_crc32_init(uint32_t table[256]) {
 
 static inline uint32_t point1_crc32_hash(const char* s, const uint32_t table[256]) {
     uint32_t crc = 0xffffffffu;
-    for (const unsigned char* p = (const unsigned char*)s; *p != '\0'; ++p) {
-        crc = table[(crc ^ (uint32_t)(*p)) & 0xffu] ^ (crc >> 8);
+    for (const unsigned char* p = (const unsigned char*)s; *p != '\0'; p++) {
+        crc = table[(crc ^ *p) & 0xffu] ^ (crc >> 8);
     }
     return crc ^ 0xffffffffu;
 }
